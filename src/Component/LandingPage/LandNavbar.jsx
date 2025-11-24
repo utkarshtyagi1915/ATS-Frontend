@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import bluelogo from "../../../../frontend/src/assets/bluelogo.png"
+import bluelogo from "../../assets/bluelogo.png"
 
 const LandNavbar = () => {
   useEffect(() => {
