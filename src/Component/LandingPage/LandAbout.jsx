@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import landaboutpic from "../../../../frontend/src/assets/landaboutpic.jpg";
+import landaboutpic from "../../assets/landaboutpic.jpg";
 
 const LandAbout = () => {
   const sectionRef = useRef(null);
