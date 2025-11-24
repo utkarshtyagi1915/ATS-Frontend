@@ -1,9 +1,9 @@
 import React from "react";
 import { FaInstagram, FaYoutube, FaLinkedin } from "react-icons/fa";
-import sg from "../../../../frontend/src/assets/sg.webp";
-import us from "../../../../frontend/src/assets/us.webp";
-import uae from "../../../../frontend/src/assets/uae.webp";
-import ind from "../../../../frontend/src/assets/ind.webp";
+import sg from "../../assets/sg.webp";
+import us from "../../assets/us.webp";
+import uae from "../../assets/uae.webp";
+import ind from "../../assets/ind.webp";
 
 const LandFooter = () => {
   return (
