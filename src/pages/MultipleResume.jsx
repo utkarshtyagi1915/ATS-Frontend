@@ -29,7 +29,7 @@ function MultipleResume() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5001/api/analyze/multiple",
+        "https://ats-new-backend-ave7edeebycda8g0.centralindia-01.azurewebsites.net/api/analyze/multiple",
         formData,
         {
           responseType: "blob",
