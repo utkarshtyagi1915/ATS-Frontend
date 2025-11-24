@@ -4,7 +4,7 @@ import LandHero from "./LandHero";
 import LandFeatures from "./LandFeatures";
 import LandAbout from "./LandAbout";
 import LandServices from "./LandServices";
-import LandFAQ from "./LandFAQ";
+import LandFAQ from "./LandFaq";
 import LandFooter from "./LandFooter";
 
 const LandingPage = () => {
