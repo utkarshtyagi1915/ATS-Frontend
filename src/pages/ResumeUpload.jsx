@@ -41,7 +41,7 @@ const ResumeUpload = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5001/api/analyze",
+        "https://ats-new-backend-ave7edeebycda8g0.centralindia-01.azurewebsites.net/api/analyze",
         formData,
         {
           headers: {
