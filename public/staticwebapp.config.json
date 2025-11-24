@@ -1,6 +1,18 @@
 {
   "routes": [
     {
+      "route": "/api/*",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/assets/*",
+      "serve": "/assets/"
+    },
+    {
+      "route": "/favicon.ico",
+      "serve": "/favicon.ico"
+    },
+    {
       "route": "/*",
       "rewrite": "/index.html"
     }
