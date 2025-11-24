@@ -112,7 +112,7 @@ const Communication = () => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:5001/api/communication/comm", {
+      const response = await fetch("https://ats-new-backend-ave7edeebycda8g0.centralindia-01.azurewebsites.net/api/communication/comm", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
