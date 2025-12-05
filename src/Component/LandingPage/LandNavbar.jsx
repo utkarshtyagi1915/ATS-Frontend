@@ -44,7 +44,7 @@ const LandNavbar = () => {
           {/* CTA Button - Right side */}
           <div className="flex items-center">
             <a
-              href="/resume"
+              href="/role"
               className="desktop-animate hidden md:inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:text-white transition-all hover:shadow-lg hover:-translate-y-0.5"
             >
               Get Started

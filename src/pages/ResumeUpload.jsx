@@ -11,6 +11,7 @@ import {
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import api from "../../services/api";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -21,44 +22,90 @@ const ResumeUpload = () => {
   const [resumeUrl, setResumeUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [loading2, setLoading2] = useState(false);
+
+ const handleGenerateAIJD = async () => {
+  try {
+    console.log("Generate AI JD Clicked!");
+
+    setLoading2(true);
+
+    const res = await api.post("/JdGenerate", {
+      role: jobDescription,   // sending to backend
+    });
+
+    console.log("AI JD Response:", res.data);
+
+    if (res.data?.jobDescription) {
+      setJobDescription(res.data.jobDescription);  // update textarea
+    } else {
+      alert("Failed to generate JD");
+    }
+
+  } catch (error) {
+    console.error("Error generating AI JD:", error);
+    alert("Something went wrong");
+  } finally {
+    setLoading2(false);
+  }
+};
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setResume(file);
+    const MAX_SIZE = 1 * 1024 * 1024; // 1 MB
+
     if (file) {
+      // Check size
+      if (file.size > MAX_SIZE) {
+        setError("File size exceeds 1 MB. Please upload a smaller PDF.");
+        e.target.value = null; // Clear input
+        setResume(null);
+        setResumeUrl(null);
+        return;
+      }
+
+      // Valid file
+      setError("");
+      setResume(file);
+
       const fileURL = URL.createObjectURL(file);
       setResumeUrl(fileURL);
     }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null); // Reset error state
-    const formData = new FormData();
-    formData.append("resume", resume);
-    formData.append("jobDescription", jobDescription);
+  e.preventDefault();
+  setLoading(true);
+  setError(null);
 
-    try {
-      const response = await axios.post(
-        "https://ats-new-backend-ave7edeebycda8g0.centralindia-01.azurewebsites.net/api/analyze",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+  const formData = new FormData();
+  formData.append("resume", resume);
+  formData.append("jobDescription", jobDescription);
+
+  try {
+    const response = await api.post(
+      "/analyze",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      );
+      }
+    );
 
-      console.log("API Response:", response.data); // Debug: Log the response
-      setResults(response.data);
-    } catch (error) {
-      console.error("Error uploading resume:", error.response?.data || error.message);
-      setError("Failed to analyze resume. Please check the console for details.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    console.log("API Response:", response.data);
+    setResults(response.data);
+
+  } catch (error) {
+    console.error(
+      "Error uploading resume:",
+      error.response?.data || error.message
+    );
+    setError("Failed to analyze resume. Please check the console for details.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Function to get the color based on score
   const getScoreColor = (score) => {
@@ -72,7 +119,10 @@ const ResumeUpload = () => {
       {/* Navbar */}
       <nav className="bg-white dark:bg-gray-900 bg-opacity-80 text-blue-900 dark:text-blue-300 w-full p-4 shadow-lg flex justify-between items-center">
         {/* Back Arrow */}
-        <Link to="/" className="text-blue-700 hover:text-indigo-600 text-xl">
+        <Link
+          to="/role"
+          className="text-blue-700 hover:text-indigo-600 text-xl"
+        >
           <FaArrowLeft />
         </Link>
         <div className="ml-[-44rem] text-3xl font-extrabold tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -80,12 +130,12 @@ const ResumeUpload = () => {
         </div>
         <div className="flex items-center space-x-4">
           {/* Add the Create Resume button */}
-          <Link
+          {/* <Link
             to="/multiple-resumes"
             className="rounded-full shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 py-2 px-4 transition duration-300 hover:text-white hover:shadow-md"
           >
             Bulk Resume Analyzer
-          </Link>
+          </Link> */}
           <Link
             to="/resume-creation"
             className="relative overflow-hidden rounded-full shadow-sm text-white bg-gradient-to-r from-indigo-600 to-blue-600 py-2 px-6 transition-all duration-300 hover:shadow-lg hover:scale-105 group"
@@ -128,19 +178,30 @@ const ResumeUpload = () => {
           <div className="w-full mb-6">
             <label className="block mb-2 text-gray-700 dark:text-gray-300 font-semibold">
               Upload Resume (PDF)
+              <span className="ml-2 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-full">
+                Max 1 MB
+              </span>
             </label>
+
             <input
               type="file"
               onChange={handleFileChange}
               accept=".pdf"
               className="block w-full text-sm text-gray-500 dark:text-gray-400
-              file:mr-4 file:py-3 file:px-4
-              file:rounded-l-lg file:border-0
-              file:text-sm file:font-semibold
-              file:bg-gradient-to-r file:from-blue-600 file:to-indigo-600 file:text-white
-              hover:file:from-blue-700 hover:file:to-indigo-700
-              cursor-pointer transition duration-200"
+    file:mr-4 file:py-3 file:px-4
+    file:rounded-l-lg file:border-0
+    file:text-sm file:font-semibold
+    file:bg-gradient-to-r file:from-blue-600 file:to-indigo-600 file:text-white
+    hover:file:from-blue-700 hover:file:to-indigo-700
+    cursor-pointer transition duration-200"
             />
+
+            {/* Using your existing error state */}
+            {error && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                {error}
+              </p>
+            )}
           </div>
           <div className="w-full mb-6">
             <label className="block mb-2 text-gray-700 dark:text-gray-300 font-semibold">
@@ -153,13 +214,33 @@ const ResumeUpload = () => {
               placeholder="Paste the job description here"
             />
           </div>
-          <button
-            onClick={handleSubmit}
-            className="w-full py-3 rounded-full shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 transition duration-300 transform hover:scale-105"
-          >
-            {loading ? "Analyzing..." : "Analyze"}
-          </button>
-          {error && <p className="text-red-500 mt-4">{error}</p>} {/* Display error if any */}
+          {/* Buttons Section */}
+<div className="w-full flex gap-4 mt-4">
+
+  {/* Analyze Button */}
+  <button
+    onClick={handleSubmit}
+    className="w-1/2 py-3 rounded-full shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 transition duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    {loading ? "Analyzing..." : "Analyze"}
+  </button>
+
+  {/* Generate AI JD Button */}
+  <button
+    onClick={handleGenerateAIJD}  // You can create this function
+    disabled={jobDescription.trim() === ""}
+    className="w-1/2 py-3 rounded-full shadow-sm text-white 
+      bg-gradient-to-r from-purple-600 to-pink-600 
+      transition duration-300 transform hover:scale-105
+      disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    {loading2 ? "Generating..." : "Generate AI JD"}
+  </button>
+
+</div>
+
+          {error && <p className="text-red-500 mt-4">{error}</p>}{" "}
+          {/* Display error if any */}
         </div>
       </div>
 
@@ -170,158 +251,122 @@ const ResumeUpload = () => {
             Analysis Results
           </h3>
           <div className="space-y-6">
-            {/* Score Section */}
-            {results.JScore !== undefined && results.GScore !== undefined && (
-              <div className="bg-gray-100 dark:bg-gray-700 p-6 rounded-lg shadow-md transition duration-300 hover:bg-gray-200 dark:hover:bg-gray-600 mt-5">
-                <table className="w-full">
-                  <thead>
-                    <tr>
-                      <th className="text-lg font-semibold text-purple-600 dark:text-purple-300 text-left p-4">
-                        <i className="fas fa-chart-pie text-purple-600 dark:text-purple-300 text-2xl mr-2"></i>
-                        General Score (GScore)
-                      </th>
-                      <th className="text-lg font-semibold text-purple-600 dark:text-purple-300 text-left p-4">
-                        <i className="fas fa-chart-pie text-purple-600 dark:text-purple-300 text-2xl mr-2"></i>
-                        Score on the Basis of JD (JScore)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="p-4" style={{ width: "50%" }}>
-                        <div className="relative" style={{ height: "200px" }}>
-                          <Doughnut
-                            data={{
-                              labels: ["GScore", "Remaining"],
-                              datasets: [
-                                {
-                                  data: [results.GScore, 100 - results.GScore],
-                                  backgroundColor: [
-                                    getScoreColor(results.GScore),
-                                    "rgba(211, 211, 211, 0.5)",
-                                  ],
-                                  borderWidth: 0,
-                                },
-                              ],
-                            }}
-                            options={{
-                              responsive: true,
-                              maintainAspectRatio: false,
-                              plugins: {
-                                tooltip: {
-                                  callbacks: {
-                                    label: (tooltipItem) => {
-                                      const label =
-                                        tooltipItem.label === "GScore"
-                                          ? "GScore: "
-                                          : "Remaining: ";
-                                      return `${label} ${tooltipItem.raw}%`;
-                                    },
-                                  },
-                                },
-                                legend: {
-                                  display: false,
-                                },
-                              },
-                            }}
-                            width={200}
-                            height={200}
-                          />
-                          {/* GScore percentage in the center */}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <p className="text-3xl font-bold text-center text-gray-800 dark:text-gray-200">
-                              <span
-                                className={`font-bold ${getScoreColor(results.GScore)}`}
-                              >
-                                {results.GScore}
-                              </span>
-                              %
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4" style={{ width: "50%" }}>
-                        <div className="relative" style={{ height: "200px" }}>
-                          <Doughnut
-                            data={{
-                              labels: ["JScore", "Remaining"],
-                              datasets: [
-                                {
-                                  data: [results.JScore, 100 - results.JScore],
-                                  backgroundColor: [
-                                    getScoreColor(results.JScore),
-                                    "rgba(211, 211, 211, 0.5)",
-                                  ],
-                                  borderWidth: 0,
-                                },
-                              ],
-                            }}
-                            options={{
-                              responsive: true,
-                              maintainAspectRatio: false,
-                              plugins: {
-                                tooltip: {
-                                  callbacks: {
-                                    label: (tooltipItem) => {
-                                      const label =
-                                        tooltipItem.label === "JScore"
-                                          ? "JScore: "
-                                          : "Remaining: ";
-                                      return `${label} ${tooltipItem.raw}%`;
-                                    },
-                                  },
-                                },
-                                legend: {
-                                  display: false,
-                                },
-                              },
-                            }}
-                            width={200}
-                            height={200}
-                          />
-                          {/* JScore percentage in the center */}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <p className="text-3xl font-bold text-center text-gray-800 dark:text-gray-200">
-                              <span
-                                className={`font-bold ${getScoreColor(results.JScore)}`}
-                              >
-                                {results.JScore}
-                              </span>
-                              %
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
+<div className="flex flex-col md:flex-row gap-6 mt-6 w-full">
 
-            {/* Job Title Match Section */}
-            {results["Job Title Match"] !== undefined && (
-              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-lg transition duration-300 hover:shadow-2x lex flex-row justify-between">
-                <h2 className="text-xl font-semibold text-purple-600 dark:text-purple-300 mb-4 flex items-center">
-                  <span className="text-2xl mr-2">
-                    <i
-                      className={`fas fa-${results["Job Title Match"] === "Matched" ? "check-circle" : "times-circle"} text-${results["Job Title Match"] === "Matched" ? "green-500 dark:text-green-400" : "red-500 dark:text-red-400"}`}
-                    ></i>
-                  </span>
-                  Job Title Match
-                </h2>
-                <p className="text-gray-700 dark:text-gray-200 text-lg">
-                  {results["Job Title Match"] === "Matched" ? (
-                    <span className="text-green-600 dark:text-green-400 font-semibold flex items-center">
-                      <i className="fas fa-thumbs-up mr-2"></i> Matched
+  {/* JScore Section */}
+  {results.JScore !== undefined && (
+    <div className="bg-gray-100 dark:bg-gray-700 p-6 rounded-lg shadow-md 
+                    transition duration-300 hover:bg-gray-200 dark:hover:bg-gray-600 
+                    mt-5 w-full md:w-1/2">
+
+      <table className="w-full">
+        <thead>
+          <tr>
+            <th className="text-lg font-semibold text-purple-600 dark:text-purple-300 text-left p-4">
+              <i className="fas fa-chart-pie text-purple-600 dark:text-purple-300 text-2xl mr-2"></i>
+              Overall Fitment Score
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td className="p-4">
+              <div className="relative" style={{ height: "200px" }}>
+                <Doughnut
+                  data={{
+                    labels: ["JScore", "Remaining"],
+                    datasets: [
+                      {
+                        data: [results.JScore, 100 - results.JScore],
+                        backgroundColor: [
+                          getScoreColor(results.JScore),
+                          "rgba(211, 211, 211, 0.5)",
+                        ],
+                        borderWidth: 0,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      tooltip: {
+                        callbacks: {
+                          label: (tooltipItem) => {
+                            const label =
+                              tooltipItem.label === "JScore"
+                                ? "JScore: "
+                                : "Remaining: ";
+                            return `${label} ${tooltipItem.raw}%`;
+                          },
+                        },
+                      },
+                      legend: {
+                        display: false,
+                      },
+                    },
+                  }}
+                />
+
+                {/* Center Percentage Text */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <p className="text-3xl font-bold text-center text-gray-800 dark:text-gray-200">
+                    <span className={`font-bold ${getScoreColor(results.JScore)}`}>
+                      {results.JScore}
                     </span>
-                  ) : (
-                    <span className="text-red-600 dark:text-red-400 font-semibold flex items-center">
-                      <i className="fas fa-thumbs-down mr-2"></i> Not Matched
-                    </span>
-                  )}
-                </p>
+                    %
+                  </p>
+                </div>
+
               </div>
-            )}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  )}
+
+  {/* Job Title Match Section */}
+  {results["Job Title Match"] !== undefined && (
+    <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-lg 
+                    transition duration-300 hover:shadow-2xl 
+                    w-full md:w-1/2">
+
+      <h2 className="text-xl font-semibold text-purple-600 dark:text-purple-300 mb-4 flex items-center">
+        <span className="text-2xl mr-2">
+          <i
+            className={`fas fa-${
+              results["Job Title Match"] === "Matched"
+                ? "check-circle"
+                : "times-circle"
+            } text-${
+              results["Job Title Match"] === "Matched"
+                ? "green-500 dark:text-green-400"
+                : "red-500 dark:text-red-400"
+            }`}
+          ></i>
+        </span>
+        Job Title Match
+      </h2>
+
+      <p className="text-gray-700 dark:text-gray-200 text-lg">
+        {results["Job Title Match"] === "Matched" ? (
+          <span className="text-green-600 dark:text-green-400 font-semibold flex items-center">
+            <i className="fas fa-thumbs-up mr-2"></i> Matched
+          </span>
+        ) : (
+          <span className="text-red-600 dark:text-red-400 font-semibold flex items-center">
+            <i className="fas fa-thumbs-down mr-2"></i> Not Matched
+          </span>
+        )}
+      </p>
+
+    </div>
+  )}
+
+</div>
 
             {/* Skills Section */}
             {results.Skills && (
@@ -367,7 +412,11 @@ const ResumeUpload = () => {
                               ([skill, matched], skillIndex) => (
                                 <tr
                                   key={skillIndex}
-                                  className={`border-t ${skillIndex % 2 === 0 ? "bg-gray-50 dark:bg-gray-600" : "bg-white dark:bg-gray-700"} hover:bg-purple-50 dark:hover:bg-purple-800 transition`}
+                                  className={`border-t ${
+                                    skillIndex % 2 === 0
+                                      ? "bg-gray-50 dark:bg-gray-600"
+                                      : "bg-white dark:bg-gray-700"
+                                  } hover:bg-purple-50 dark:hover:bg-purple-800 transition`}
                                 >
                                   <td className="px-4 py-3 text-gray-700 dark:text-gray-200">
                                     {skill}
@@ -384,12 +433,12 @@ const ResumeUpload = () => {
                                     )}
                                   </td>
                                 </tr>
-                              ),
+                              )
                             )}
                           </tbody>
                         </table>
                       </div>
-                    ),
+                    )
                   )}
                 </div>
               </div>
@@ -478,7 +527,7 @@ const ResumeUpload = () => {
                             {project.Description}
                           </p>
                         </div>
-                      ),
+                      )
                     )}
                   </div>
                 </div>
@@ -502,10 +551,11 @@ const ResumeUpload = () => {
                       (item, index) => (
                         <div
                           key={index}
-                          className={`relative p-5 rounded-lg shadow-md transition duration-200 border-l-4 ${item.Status === "Matched"
+                          className={`relative p-5 rounded-lg shadow-md transition duration-200 border-l-4 ${
+                            item.Status === "Matched"
                               ? "border-green-500 bg-green-50 dark:bg-green-900"
                               : "border-red-500 bg-red-50 dark:bg-red-900"
-                            }`}
+                          }`}
                         >
                           {/* Status Icon in Top-Right Corner */}
                           <div className="absolute top-2 right-2">
@@ -526,7 +576,7 @@ const ResumeUpload = () => {
                             {item.Explanation}
                           </p>
                         </div>
-                      ),
+                      )
                     )}
                   </div>
                 </div>
@@ -580,7 +630,7 @@ const ResumeUpload = () => {
                             ))}
                           </ul>
                         </div>
-                      ),
+                      )
                     )}
                   </div>
                 </div>
@@ -616,7 +666,7 @@ const ResumeUpload = () => {
                           {suggestion}
                         </p>
                       </li>
-                    ),
+                    )
                   )}
                 </ul>
               </div>
@@ -665,7 +715,7 @@ const ResumeUpload = () => {
                         >
                           {suggestion}
                         </li>
-                      ),
+                      )
                     )}
                   </ul>
                 </div>
@@ -699,7 +749,7 @@ const ResumeUpload = () => {
                       <tbody>
                         {results["Recruiter Tips"].wordsToAvoid &&
                           Object.entries(
-                            results["Recruiter Tips"].wordsToAvoid,
+                            results["Recruiter Tips"].wordsToAvoid
                           ).map(([word, alternative], index) => (
                             <tr
                               key={index}
@@ -729,4 +779,3 @@ const ResumeUpload = () => {
 };
 
 export default ResumeUpload;
-

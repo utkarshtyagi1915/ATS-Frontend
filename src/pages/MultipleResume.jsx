@@ -14,6 +14,7 @@ function MultipleResume() {
   const [downloadFileName, setDownloadFileName] = useState("");
   const [error, setError] = useState("");
   const [dashboardData, setDashboardData] = useState(null);
+  const MAX_FILE_SIZE = 50 * 1024 * 1024;
   // const [showDashboard, setShowDashboard] = useState(false);
   const fileInputRef = useRef();
 
@@ -73,26 +74,35 @@ function MultipleResume() {
   };
 
   const handleFolderChange = (event) => {
-    const selectedFiles = event.target.files;
-    const fileArray = Array.from(selectedFiles);
+  const files = event.target.files;
+  const oversizedFiles = [];
 
-    if (fileArray.length > 50) {
-      setError("You can upload a maximum of 50 files only.");
-      setFiles([]);
-      event.target.value = "";
-      return;
+  for (let i = 0; i < files.length; i++) {
+    if (files[i].size > MAX_FILE_SIZE) {
+      oversizedFiles.push(files[i].name);
     }
+  }
 
-    setError("");
-    setFiles(fileArray);
-  };
+  if (oversizedFiles.length > 0) {
+    alert(
+      `The following files exceed 50 MB and will not be uploaded:\n${oversizedFiles.join(
+        "\n"
+      )}`
+    );
+    // Optionally clear the input
+    event.target.value = null;
+    return;
+  }
 
+  // Continue with your file handling logic
+  console.log("Files ready to upload:", files);
+};
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center w-full overflow-hidden">
       {/* Floating Navbar */}
       <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md text-blue-900 dark:text-blue-300 w-full p-4 shadow-lg flex justify-between items-center fixed top-0 z-50 border-b border-blue-100 dark:border-gray-700">
                       {/* Back Arrow */}
-                      <Link to="/" className="text-blue-700 hover:text-indigo-600 text-xl">
+                      <Link to="/hr-portal" className="text-blue-700 hover:text-indigo-600 text-xl">
                  <FaArrowLeft />
                </Link>
         <div className="ml-[-45rem] text-3xl font-extrabold tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -100,19 +110,19 @@ function MultipleResume() {
         </div>
         <div className="flex items-center space-x-4">
           <Link
-            to="/resume"
+            to="/hr-portal"
             className="relative overflow-hidden rounded-full shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 py-2 px-6 transition-all duration-300 hover:shadow-lg hover:scale-105 group"
           >
             <span className="relative z-10">Resume Analyzer</span>
             <span className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
           </Link>
-          <Link
+          {/* <Link
             to="/resume-creation"
             className="relative overflow-hidden rounded-full shadow-sm text-white bg-gradient-to-r from-indigo-600 to-blue-600 py-2 px-6 transition-all duration-300 hover:shadow-lg hover:scale-105 group"
           >
             <span className="relative z-10">Create Resume</span>
             <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-          </Link>
+          </Link> */}
         </div>
       </nav>
 
@@ -155,7 +165,7 @@ function MultipleResume() {
             {/* File Upload with Glow Effect */}
             <div className="mb-6 w-full">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Select Resumes (Max 50)
+                Select Resumes (Max 50MB)
                 <span className="ml-2 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-full">
                   PDF Only
                 </span>
