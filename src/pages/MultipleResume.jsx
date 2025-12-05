@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FaArrowLeft } from 'react-icons/fa';
 import axios from "axios";
 import AnalyzeImage from "./Analyze-rafiki.svg";
+import api from "../../services/api";
 // import MultipleDashboard from "./MultipleDashboard";
 import * as XLSX from "xlsx";
 
@@ -13,11 +14,36 @@ function MultipleResume() {
   const [downloadUrl, setDownloadUrl] = useState(null);
   const [downloadFileName, setDownloadFileName] = useState("");
   const [error, setError] = useState("");
+  const [loading2, setLoading2] = useState(false);
   const [dashboardData, setDashboardData] = useState(null);
   const MAX_FILE_SIZE = 50 * 1024 * 1024;
   // const [showDashboard, setShowDashboard] = useState(false);
   const fileInputRef = useRef();
+  const handleGenerateAIJD = async () => {
+  try {
+    console.log("Generate AI JD Clicked!");
 
+    setLoading2(true);
+
+    const res = await api.post("/JdGenerate", {
+      role: jobDescription,   // sending to backend
+    });
+
+    console.log("AI JD Response:", res.data);
+
+    if (res.data?.jobDescription) {
+      setJobDescription(res.data.jobDescription);  // update textarea
+    } else {
+      alert("Failed to generate JD");
+    }
+
+  } catch (error) {
+    console.error("Error generating AI JD:", error);
+    alert("Something went wrong");
+  } finally {
+    setLoading2(false);
+  }
+};
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -74,14 +100,15 @@ function MultipleResume() {
   };
 
   const handleFolderChange = (event) => {
-  const files = event.target.files;
+  const selectedFiles = Array.from(event.target.files); // ⭐ correct
+
   const oversizedFiles = [];
 
-  for (let i = 0; i < files.length; i++) {
-    if (files[i].size > MAX_FILE_SIZE) {
-      oversizedFiles.push(files[i].name);
+  selectedFiles.forEach((file) => {
+    if (file.size > MAX_FILE_SIZE) {
+      oversizedFiles.push(file.name);
     }
-  }
+  });
 
   if (oversizedFiles.length > 0) {
     alert(
@@ -89,14 +116,16 @@ function MultipleResume() {
         "\n"
       )}`
     );
-    // Optionally clear the input
     event.target.value = null;
     return;
   }
 
-  // Continue with your file handling logic
-  console.log("Files ready to upload:", files);
+  // ⭐ FIXED: now store all uploaded files correctly
+  setFiles(selectedFiles);
+
+  console.log("Files ready to upload:", selectedFiles);
 };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center w-full overflow-hidden">
       {/* Floating Navbar */}
@@ -175,19 +204,19 @@ function MultipleResume() {
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
                 <div className="relative bg-white dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
                   <input
-                    type="file"
-                    webkitdirectory="true"
-                    onChange={handleFolderChange}
-                    accept=".pdf"
-                    ref={fileInputRef}
-                    className="block w-full text-sm text-gray-500 dark:text-gray-400
-                  file:mr-4 file:py-3 file:px-4
-                  file:rounded-l-lg file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-gradient-to-r file:from-blue-600 file:to-indigo-600 file:text-white
-                  hover:file:from-blue-700 hover:file:to-indigo-700
-                  cursor-pointer transition duration-200"
-                  />
+  type="file"
+  webkitdirectory=""
+  directory=""
+  multiple
+  onChange={handleFolderChange}
+  accept=".pdf"
+  ref={fileInputRef}
+  className="block w-full text-sm text-gray-500 dark:text-gray-400
+    file:mr-4 file:py-3 file:px-4
+    file:rounded-l-lg file:border-0
+    file:bg-gradient-to-r file:from-blue-600 file:to-indigo-600 file:text-white
+    hover:file:from-blue-700 hover:file:to-indigo-700"
+/>
                 </div>
               </div>
 
@@ -227,30 +256,30 @@ function MultipleResume() {
             />
           </div>
 
-            {/* Analyze Button with Pulse Animation */}
-            <button
-              onClick={handleSubmit}
-              disabled={loading || files.length === 0 || !jobDescription}
-              className={`w-full py-4 px-6 rounded-full shadow-lg transition-all duration-300 ${loading || files.length === 0 || !jobDescription
-                  ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl"
-                } text-white font-semibold relative overflow-hidden group`}
-            >
-              <span className="relative z-10 flex items-center justify-center">
-                {loading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </>
-                ) : (
-                  "Analyze Resumes"
-                )}
-              </span>
-              <span className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            </button>
+            {/* Buttons Section */}
+<div className="w-full flex gap-4 mt-4">
+
+  {/* Analyze Button */}
+  <button
+    onClick={handleSubmit}
+    className="w-1/2 py-3 rounded-full shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 transition duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    {loading ? "Analyzing..." : "Analyze"}
+  </button>
+
+  {/* Generate AI JD Button */}
+  <button
+    onClick={handleGenerateAIJD}  // You can create this function
+    disabled={jobDescription.trim() === ""}
+    className="w-1/2 py-3 rounded-full shadow-sm text-white 
+      bg-gradient-to-r from-purple-600 to-pink-600 
+      transition duration-300 transform hover:scale-105
+      disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    {loading2 ? "Generating..." : "Generate AI JD"}
+  </button>
+
+</div>
 
             {/* Results Section */}
             {downloadUrl && (
