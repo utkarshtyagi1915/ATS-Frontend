@@ -20,30 +20,30 @@ function MultipleResume() {
   // const [showDashboard, setShowDashboard] = useState(false);
   const fileInputRef = useRef();
   const handleGenerateAIJD = async () => {
-  try {
-    console.log("Generate AI JD Clicked!");
+    try {
+      console.log("Generate AI JD Clicked!");
 
-    setLoading2(true);
+      setLoading2(true);
 
-    const res = await api.post("/JdGenerate", {
-      role: jobDescription,   // sending to backend
-    });
+      const res = await api.post("/JdGenerate", {
+        role: jobDescription,   // sending to backend
+      });
 
-    console.log("AI JD Response:", res.data);
+      console.log("AI JD Response:", res.data);
 
-    if (res.data?.jobDescription) {
-      setJobDescription(res.data.jobDescription);  // update textarea
-    } else {
-      alert("Failed to generate JD");
+      if (res.data?.jobDescription) {
+        setJobDescription(res.data.jobDescription);  // update textarea
+      } else {
+        alert("Failed to generate JD");
+      }
+
+    } catch (error) {
+      console.error("Error generating AI JD:", error);
+      alert("Something went wrong");
+    } finally {
+      setLoading2(false);
     }
-
-  } catch (error) {
-    console.error("Error generating AI JD:", error);
-    alert("Something went wrong");
-  } finally {
-    setLoading2(false);
-  }
-};
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -56,7 +56,7 @@ function MultipleResume() {
 
     try {
       const response = await axios.post(
-        "https://ats-new-backend-ave7edeebycda8g0.centralindia-01.azurewebsites.net/api/analyze/multiple",
+        "http://localhost:5001/api/analyze/multiple",
         formData,
         {
           responseType: "blob",
@@ -100,40 +100,40 @@ function MultipleResume() {
   };
 
   const handleFolderChange = (event) => {
-  const selectedFiles = Array.from(event.target.files); // ⭐ correct
+    const selectedFiles = Array.from(event.target.files); // ⭐ correct
 
-  const oversizedFiles = [];
+    const oversizedFiles = [];
 
-  selectedFiles.forEach((file) => {
-    if (file.size > MAX_FILE_SIZE) {
-      oversizedFiles.push(file.name);
+    selectedFiles.forEach((file) => {
+      if (file.size > MAX_FILE_SIZE) {
+        oversizedFiles.push(file.name);
+      }
+    });
+
+    if (oversizedFiles.length > 0) {
+      alert(
+        `The following files exceed 50 MB and will not be uploaded:\n${oversizedFiles.join(
+          "\n"
+        )}`
+      );
+      event.target.value = null;
+      return;
     }
-  });
 
-  if (oversizedFiles.length > 0) {
-    alert(
-      `The following files exceed 50 MB and will not be uploaded:\n${oversizedFiles.join(
-        "\n"
-      )}`
-    );
-    event.target.value = null;
-    return;
-  }
+    // ⭐ FIXED: now store all uploaded files correctly
+    setFiles(selectedFiles);
 
-  // ⭐ FIXED: now store all uploaded files correctly
-  setFiles(selectedFiles);
-
-  console.log("Files ready to upload:", selectedFiles);
-};
+    console.log("Files ready to upload:", selectedFiles);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center w-full overflow-hidden">
       {/* Floating Navbar */}
       <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md text-blue-900 dark:text-blue-300 w-full p-4 shadow-lg flex justify-between items-center fixed top-0 z-50 border-b border-blue-100 dark:border-gray-700">
-                      {/* Back Arrow */}
-                      <Link to="/hr-portal" className="text-blue-700 hover:text-indigo-600 text-xl">
-                 <FaArrowLeft />
-               </Link>
+        {/* Back Arrow */}
+        <Link to="/hr-portal" className="text-blue-700 hover:text-indigo-600 text-xl">
+          <FaArrowLeft />
+        </Link>
         <div className="ml-[-45rem] text-3xl font-extrabold tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
           Meridian ATS
         </div>
@@ -184,7 +184,7 @@ function MultipleResume() {
 
           <div className="w-full max-w-md relative z-10">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent text-center">
-            Bulk Resume Analyzer
+              Bulk Resume Analyzer
             </h2>
 
             <p className="text-gray-600 dark:text-gray-400 mb-8 text-center">
@@ -204,19 +204,19 @@ function MultipleResume() {
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
                 <div className="relative bg-white dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
                   <input
-  type="file"
-  webkitdirectory=""
-  directory=""
-  multiple
-  onChange={handleFolderChange}
-  accept=".pdf"
-  ref={fileInputRef}
-  className="block w-full text-sm text-gray-500 dark:text-gray-400
+                    type="file"
+                    webkitdirectory=""
+                    directory=""
+                    multiple
+                    onChange={handleFolderChange}
+                    accept=".pdf"
+                    ref={fileInputRef}
+                    className="block w-full text-sm text-gray-500 dark:text-gray-400
     file:mr-4 file:py-3 file:px-4
     file:rounded-l-lg file:border-0
     file:bg-gradient-to-r file:from-blue-600 file:to-indigo-600 file:text-white
     hover:file:from-blue-700 hover:file:to-indigo-700"
-/>
+                  />
                 </div>
               </div>
 
@@ -245,41 +245,41 @@ function MultipleResume() {
 
             {/* Job Description with Floating Label Effect */}
             <div className="w-full mb-6">
-            <label className="block mb-2 text-gray-700 dark:text-gray-300 font-semibold">
-              Job Description
-            </label>
-            <textarea
-              className="w-full h-32 px-4 py-3 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none transition duration-200 hover:border-purple-500 dark:hover:border-purple-300"
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              placeholder="Paste the job description here"
-            />
-          </div>
+              <label className="block mb-2 text-gray-700 dark:text-gray-300 font-semibold">
+                Job Description
+              </label>
+              <textarea
+                className="w-full h-32 px-4 py-3 bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm focus:outline-none transition duration-200 hover:border-purple-500 dark:hover:border-purple-300"
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Paste the job description here"
+              />
+            </div>
 
             {/* Buttons Section */}
-<div className="w-full flex gap-4 mt-4">
+            <div className="w-full flex gap-4 mt-4">
 
-  {/* Analyze Button */}
-  <button
-    onClick={handleSubmit}
-    className="w-1/2 py-3 rounded-full shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 transition duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    {loading ? "Analyzing..." : "Analyze"}
-  </button>
+              {/* Analyze Button */}
+              <button
+                onClick={handleSubmit}
+                className="w-1/2 py-3 rounded-full shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 transition duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Analyzing..." : "Analyze"}
+              </button>
 
-  {/* Generate AI JD Button */}
-  <button
-    onClick={handleGenerateAIJD}  // You can create this function
-    disabled={jobDescription.trim() === ""}
-    className="w-1/2 py-3 rounded-full shadow-sm text-white 
+              {/* Generate AI JD Button */}
+              <button
+                onClick={handleGenerateAIJD}  // You can create this function
+                disabled={jobDescription.trim() === ""}
+                className="w-1/2 py-3 rounded-full shadow-sm text-white 
       bg-gradient-to-r from-purple-600 to-pink-600 
       transition duration-300 transform hover:scale-105
       disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    {loading2 ? "Generating..." : "Generate AI JD"}
-  </button>
+              >
+                {loading2 ? "Generating..." : "Generate AI JD"}
+              </button>
 
-</div>
+            </div>
 
             {/* Results Section */}
             {downloadUrl && (

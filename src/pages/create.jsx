@@ -205,7 +205,7 @@ const CreateResume = () => {
 
     try {
       const response = await axios.post(
-        "https://ats-new-backend-ave7edeebycda8g0.centralindia-01.azurewebsites.net/api/form/submit",
+        "http://localhost:5001/api/form/submit",
         formData,
       );
       console.log("Data sent successfully:", response.data);
@@ -314,10 +314,10 @@ const CreateResume = () => {
       <nav className="bg-gray-800 border-b border-gray-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-                           {/* Back Arrow */}
-                           <Link to="/" className="text-blue-700 hover:text-indigo-600 text-xl">
-                      <FaArrowLeft />
-                    </Link>
+            {/* Back Arrow */}
+            <Link to="/" className="text-blue-700 hover:text-indigo-600 text-xl">
+              <FaArrowLeft />
+            </Link>
             <div className="ml-[-48rem] flex items-center gap-2">
               <FaCode className="text-purple-500 text-2xl" />
               <span className="text-xl font-bold text-white">
