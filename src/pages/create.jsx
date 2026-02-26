@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../../services/api";
 import { FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from "react-router-dom";
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -204,8 +204,8 @@ const CreateResume = () => {
     console.log("Transformed Data (create.jsx):", transformedData);
 
     try {
-      const response = await axios.post(
-        "http://localhost:5001/api/form/submit",
+      const response = await api.post(
+        "/form/submit",
         formData,
       );
       console.log("Data sent successfully:", response.data);

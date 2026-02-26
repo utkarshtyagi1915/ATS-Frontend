@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { FaArrowLeft } from 'react-icons/fa';
-import axios from "axios";
+
 import AnalyzeImage from "./Analyze-rafiki.svg";
 import api from "../../services/api";
 // import MultipleDashboard from "./MultipleDashboard";
@@ -55,8 +55,8 @@ function MultipleResume() {
     formData.append("jobDescription", jobDescription);
 
     try {
-      const response = await axios.post(
-        "http://localhost:5001/api/analyze/multiple",
+      const response = await api.post(
+        "/analyze/multiple",
         formData,
         {
           responseType: "blob",

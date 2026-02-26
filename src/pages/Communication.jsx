@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../../services/api";
 import { FaMicrophone, FaStop, FaPaperPlane, FaChartBar } from "react-icons/fa";
 import { MdRefresh, MdContentCopy } from "react-icons/md";
 import { BiTime } from "react-icons/bi";
@@ -112,19 +113,13 @@ const Communication = () => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:5001/api/communication/comm", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-          text,
-          topic 
-        }),
+      const response = await api.post("/communication/comm", {
+        text,
+        topic,
       });
 
-      const data = await response.json();
-      
+      const data = response.data;
+
       if (!data.success) {
         throw new Error(data.message);
       }
@@ -149,16 +144,16 @@ const Communication = () => {
 
 
         <div className="main-controls">
-        {/* Add Topic Input */}
-        <div className="topic-input">
-          <input
-            type="text"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            placeholder="Enter discussion topic..."
-            disabled={loading}
-          />
-        </div>
+          {/* Add Topic Input */}
+          <div className="topic-input">
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="Enter discussion topic..."
+              disabled={loading}
+            />
+          </div>
           <div className="control-group">
             <button
               onClick={isListening ? stopListening : startListening}
@@ -175,7 +170,7 @@ const Communication = () => {
                 </>
               )}
             </button>
-            
+
             <Timer isRunning={isListening} />
           </div>
 
@@ -187,7 +182,7 @@ const Communication = () => {
             >
               <MdRefresh /> Reset
             </button>
-            
+
             <button
               onClick={copyToClipboard}
               className="control-btn copy"
@@ -207,7 +202,7 @@ const Communication = () => {
               Words: {text.trim().split(/\s+/).filter(Boolean).length}
             </div>
           </div>
-          
+
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
